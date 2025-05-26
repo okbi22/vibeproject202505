@@ -38,10 +38,14 @@ if selected_station_1 and selected_station_2:
     # 데이터 변형
     melted = plot_data.melt(id_vars=['출발역'], value_vars=time_columns, var_name='시간', value_name='혼잡도')
 
-    # 색상 지정
+    # 🚨 색상 명확히 지정
     color_map = {selected_station_1: "red", selected_station_2: "blue"}
-
-    # 막대 그래프 생성
+    
+    # 🚨 두 번째 역이 포함되어 있는지 확인
+    if not any(melted['출발역'] == selected_station_2):
+        st.warning(f"⚠️ '{selected_station_2}'의 데이터가 없습니다. CSV 파일을 확인하세요.")
+    
+    # 막대 그래프 생성 (빨강 & 파랑)
     fig = px.bar(melted, x='시간', y='혼잡도', color='출발역', barmode="group",
                  title=f"{selected_station_1} (🔴) vs {selected_station_2} (🔵) 혼잡도 비교",
                  color_discrete_map=color_map,
