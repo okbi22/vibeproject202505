@@ -52,4 +52,25 @@ fig = go.Figure()
 
 fig.add_trace(go.Bar(
     x=hour_labels,
-    y=hourly
+    y=hourly_avg1,
+    name=station1,
+    marker_color='royalblue'
+))
+
+fig.add_trace(go.Bar(
+    x=hour_labels,
+    y=hourly_avg2,
+    name=station2,
+    marker_color='darkorange'
+))
+
+fig.update_layout(
+    barmode='group',
+    title=f"🕐 1시간 단위 혼잡도 비교: {station1} vs {station2} ({day_option})",
+    xaxis_title="시간대",
+    yaxis_title="혼잡도 (%)",
+    xaxis_tickangle=0,
+    height=600
+)
+
+st.plotly_chart(fig)
