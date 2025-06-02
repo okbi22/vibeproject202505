@@ -95,7 +95,7 @@ def add_marker_with_label(lat, lon, name, color, icon_name):
 # 선택한 역이 있을 경우 지도에 마커 추가
 if station1 != "역명 선택" and station2 != "역명 선택":
     selected_stations = station_info[station_info["역사명"].isin([station1, station2])]
-    
+
     if not selected_stations.empty:  # 두 개의 역을 올바르게 가져왔는지 확인
         for _, row in selected_stations.iterrows():
             name = row["역사명"] + "역"
