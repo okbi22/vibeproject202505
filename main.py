@@ -3,6 +3,8 @@ import pandas as pd
 import plotly.graph_objs as go
 import folium
 from streamlit_folium import st_folium
+from geopy.geocoders import Nominatim
+import time
 
 # 📁 데이터 로드
 df = pd.read_csv("subway_congestion.csv")
@@ -66,34 +68,54 @@ st.markdown(f"""
 📌 현재 선택 요일: **{day_option}**
 """)
 
-# ✅ 좌표 사전 정의 (필요한 역만 추가)
-station_coords = {
-    "청량리": [37.5802, 127.0464],
-    "강남": [37.4979, 127.0276],
-    "서울역": [37.5547, 126.9706],
-    "홍대입구": [37.5572, 126.9245],
-    "신도림": [37.5088, 126.8910],
-    "건대입구": [37.5405, 127.0697],
-    "삼각지": [37.5345, 126.9736],
-    # 필요한 역 추가하세요
-}
-
-# ✅ 지도 시각화
+# ✅ 지도 시각화 - 지오코딩 사용
 st.markdown("---")
 st.markdown("### 🗺️ 선택한 역의 지도 위치")
-center = [37.5665, 126.9780]
-m = folium.Map(location=center, zoom_start=12)
 
-for station in [station1, station2]:
-    if station in station_coords:
-        lat, lon = station_coords[station]
+# "역"을 붙인 검색용 이름 생성
+station1_name = station1 + "역"
+station2_name = station2 + "역"
+
+# 지오코딩 초기화
+geolocator = Nominatim(user_agent="subway_locator")
+
+# 위치 검색 함수
+@st.cache_data(show_spinner=False)
+def get_location(station_name):
+    try:
+        location = geolocator.geocode(station_name)
+        time.sleep(1)  # 요청 간격 지연 (Nominatim 제한)
+        return location
+    except:
+        return None
+
+# 위치 가져오기
+location1 = get_location(station1_name)
+location2 = get_location(station2_name)
+
+# 지도 중심 설정
+map_center = [37.5665, 126.9780]  # 서울 시청 기본
+if location1:
+    map_center = [location1.latitude, location1.longitude]
+
+# 지도 생성
+m = folium.Map(location=map_center, zoom_start=12)
+
+# 마커 추가 함수
+def add_marker(location, name, color):
+    if location:
         folium.Marker(
-            location=[lat, lon],
-            popup=f"{station}역",
-            tooltip="📍 " + station,
-            icon=folium.Icon(color="blue" if station == station1 else "orange")
+            location=[location.latitude, location.longitude],
+            popup=name,
+            tooltip="📍 " + name,
+            icon=folium.Icon(color=color, icon="info-sign")
         ).add_to(m)
     else:
-        st.warning(f"⚠️ '{station}' 역의 좌표 정보가 없습니다. station_coords 딕셔너리에 추가해주세요.")
+        st.warning(f"⚠️ '{name}'의 위치를 찾을 수 없습니다.")
 
+# 마커 추가
+add_marker(location1, station1_name, "blue")
+add_marker(location2, station2_name, "orange")
+
+# 지도 출력
 st_folium(m, width=700, height=500)
