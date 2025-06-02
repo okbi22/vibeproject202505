@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
+import folium
+from streamlit_folium import st_folium
+from folium.features import DivIcon
 
 # 📁 혼잡도 데이터 및 역 위치 데이터 로드
 df = pd.read_csv("subway_congestion.csv")
@@ -57,13 +60,40 @@ fig.update_layout(
 )
 st.plotly_chart(fig)
 
-# ✅ 데이터 설명
-st.markdown(f"""
-#### 🧾 데이터 설명  
-서울교통공사 1-9호선 **30분 단위 평균 혼잡도** 데이터를 바탕으로,  
-30분 간격 데이터를 1시간 평균으로 변환해 시각화합니다.  
-- **정원 대비 승차 인원 비율** 기준으로 혼잡도를 표시합니다.  
-- 승객 수가 좌석 수일 때 혼잡도는 **34%**입니다.
+# ✅ 선택된 역 지도에 마커 표시
+st.markdown("---")
+st.markdown("### 🗺️ 선택한 역의 지도 위치")
 
-📌 선택 요일: **{day_option}**
-""")
+# 선택한 두 역의 위치 정보 가져오기
+selected_stations = station_info[station_info["역사명"].isin([station1, station2])]
+
+# 지도 초기화
+center = [37.5665, 126.9780]  # 서울 중심
+m = folium.Map(location=center, zoom_start=12)
+
+# 마커 및 라벨 표시 함수
+def add_marker_with_label(lat, lon, name, color):
+    folium.Marker(
+        location=[lat, lon],
+        tooltip=name,
+        icon=folium.Icon(color=color, icon="info-sign")
+    ).add_to(m)
+    folium.map.Marker(
+        [lat, lon],
+        icon=DivIcon(
+            icon_size=(150, 36),
+            icon_anchor=(0, 0),
+            html=f'<div style="font-size: 12pt; color: {color}; font-weight: bold;">{name}</div>',
+        )
+    ).add_to(m)
+
+# 두 역 지도에 표시
+for _, row in selected_stations.iterrows():
+    name = row["역사명"] + "역"
+    lat = row["역위도"]
+    lon = row["역경도"]
+    color = "blue" if row["역사명"] == station1 else "orange"
+    add_marker_with_label(lat, lon, name, color)
+
+# 지도 출력
+st_folium(m, width=700, height=500)
