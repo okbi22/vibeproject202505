@@ -6,6 +6,19 @@ from streamlit_folium import st_folium
 from folium.features import DivIcon
 from geopy.geocoders import Nominatim
 
+import time
+
+def get_location(station_name, max_retry=3):
+    for _ in range(max_retry):
+        try:
+            location = geolocator.geocode(f"서울 {station_name}역")
+            if location:
+                return location
+        except:
+            pass
+        time.sleep(1)  # 1초 대기 후 재시도
+    return None
+
 # 📁 데이터 로드
 df = pd.read_csv("subway_congestion.csv")
 
