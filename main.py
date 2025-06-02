@@ -19,29 +19,51 @@ st.markdown("""
 # ✅ 요일 선택
 st.subheader("📅 요일 및 역 선택")
 day_option = st.selectbox("요일을 선택하세요", ["평일", "토요일", "일요일"])
-df_filtered = df[(df['요일구분'] == day_option) & (df['상하구분'] == '상선')]
+df_filtered = df[df['요일구분'] == day_option]
 
-# ✅ 사용자 선택 - 1호선~2호선 포함
+# ✅ 사용자 선택 - 역1
 st.subheader("🔵 첫 번째 역 선택")
-line1_options = ["지하철 1~8호선 중 선택"] + sorted(df_filtered["호선"].unique()) + ["2호선"]
+line1_options = ["1~8호선 중 선택"] + sorted(df_filtered["호선"].unique())
 line1 = st.selectbox("1️⃣ 첫 번째 호선을 선택하세요", line1_options, key="line1")
 
-station1_list = sorted(df_filtered[df_filtered["호선"] == line1]["출발역"].unique()) if line1 != "지하철 1~8호선 중 선택" else []
+station1_list = sorted(df_filtered[df_filtered["호선"] == line1]["출발역"].unique()) if line1 != "1~8호선 중 선택" else []
 station1 = st.selectbox("📍 첫 번째 역을 선택하세요", ["역명 선택"] + station1_list, key="station1")
 
-# ✅ 사용자 선택 - 2호선 포함
+# ✅ 사용자 선택 - 역2
 st.subheader("🟠 두 번째 역 선택")
-line2_options = ["지하철 1~8호선 중 선택"] + sorted(df_filtered["호선"].unique()) + ["2호선"]
+line2_options = ["1~8호선 중 선택"] + sorted(df_filtered["호선"].unique())
 line2 = st.selectbox("2️⃣ 두 번째 호선을 선택하세요", line2_options, key="line2")
 
-station2_list = sorted(df_filtered[df_filtered["호선"] == line2]["출발역"].unique()) if line2 != "지하철 1~8호선 중 선택" else []
+station2_list = sorted(df_filtered[df_filtered["호선"] == line2]["출발역"].unique()) if line2 != "1~8호선 중 선택" else []
 station2 = st.selectbox("📍 두 번째 역을 선택하세요", ["역명 선택"] + station2_list, key="station2")
 
-# ✅ 선택한 역이 있을 때만 데이터 가져오기
-if station1 != "역명 선택" and station2 != "역명 선택":
-    selected_stations = station_info[station_info["역사명"].isin([station1, station2])]
-else:
-    selected_stations = pd.DataFrame(columns=station_info.columns)  # 빈 데이터프레임 생성
+# ✅ 시간대 평균 계산
+time_cols = df.columns[6:]
+hour_labels = [col[:col.find('시') + 1] for col in time_cols]
+
+def get_hourly_avg(line, station):
+    if station == "역명 선택":
+        return [0] * len(hour_labels)
+    row = df_filtered[(df_filtered["호선"] == line) & (df_filtered["출발역"] == station)][time_cols].mean()
+    return list(row)
+
+hourly_avg1 = get_hourly_avg(line1, station1)
+hourly_avg2 = get_hourly_avg(line2, station2)
+
+# ✅ 혼잡도 그래프
+st.markdown("### 📊 혼잡도 비교 그래프")
+fig = go.Figure()
+fig.add_trace(go.Bar(x=hour_labels, y=hourly_avg1, name=f"{line1}호선 {station1}" if station1 != "역명 선택" else "역 선택 필요", marker_color='royalblue'))
+fig.add_trace(go.Bar(x=hour_labels, y=hourly_avg2, name=f"{line2}호선 {station2}" if station2 != "역명 선택" else "역 선택 필요", marker_color='darkorange'))
+fig.update_layout(
+    barmode='group',
+    title=f"🕐 1시간 단위 혼잡도 비교" if station1 != "역명 선택" and station2 != "역명 선택" else "역을 선택하세요",
+    xaxis_title="시간대",
+    yaxis_title="혼잡도 (%)",
+    xaxis_tickangle=0,
+    height=600
+)
+st.plotly_chart(fig)
 
 # ✅ 선택한 역 지도 표시
 st.markdown("---")
@@ -68,8 +90,9 @@ def add_marker_with_label(lat, lon, name, color, icon_name):
         )
     ).add_to(m)
 
-# 선택한 역이 있을 경우 지도에 마커 추가
-if not selected_stations.empty:
+# 역 선택 확인 후 지도에 표시
+if station1 != "역명 선택" and station2 != "역명 선택":
+    selected_stations = station_info[station_info["역사명"].isin([station1, station2])]
     for _, row in selected_stations.iterrows():
         name = row["역사명"] + "역"
         lat = row["역위도"]
