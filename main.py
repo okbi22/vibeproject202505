@@ -21,17 +21,18 @@ st.subheader("📅 요일 및 역 선택")
 day_option = st.selectbox("요일을 선택하세요", ["평일", "토요일", "일요일"])
 df_filtered = df[(df['요일구분'] == day_option) & (df['상하구분'] == '상선')]
 
-# ✅ 호선 선택
-line_list = sorted(df_filtered['호선'].unique())
-line1 = st.selectbox("🔷 첫 번째 역의 호선을 선택하세요", line_list)
-line2 = st.selectbox("🟠 두 번째 역의 호선을 선택하세요", line_list, index=1)
-
-# ✅ 역 선택 (호선 기반 필터링)
+# ✅ 사용자 선택 - 역1
+st.subheader("🔵 첫 번째 역 선택")
+line1 = st.selectbox("1️⃣ 첫 번째 호선을 선택하세요", sorted(df_filtered["호선"].unique()), key="line1")
 station1_list = sorted(df_filtered[df_filtered["호선"] == line1]["출발역"].unique())
-station2_list = sorted(df_filtered[df_filtered["호선"] == line2]["출발역"].unique())
+station1 = st.selectbox("📍 첫 번째 역을 선택하세요", station1_list, key="station1")
 
-station1 = st.selectbox("🔵 첫 번째 역 선택", station1_list)
-station2 = st.selectbox("🟠 두 번째 역 선택", station2_list)
+# ✅ 사용자 선택 - 역2
+st.subheader("🟠 두 번째 역 선택")
+line2 = st.selectbox("2️⃣ 두 번째 호선을 선택하세요", sorted(df_filtered["호선"].unique()), index=1, key="line2")
+station2_list = sorted(df_filtered[df_filtered["호선"] == line2]["출발역"].unique())
+station2 = st.selectbox("📍 두 번째 역을 선택하세요", station2_list, key="station2")
+
 
 # ✅ 시간대 평균 계산
 time_cols_30min = df.columns[6:]
