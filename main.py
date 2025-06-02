@@ -84,12 +84,14 @@ def add_marker_with_label(lat, lon, name, color, icon_name):
     folium.map.Marker(
         [lat, lon],
         icon=DivIcon(
-            icon_size=(len(name) * 10, 40),  # 글자 길이에 따라 배경 크기 조정
+            icon_size=(len(name) * 12, 30),  # 글자 길이에 따라 배경 크기 조정
             icon_anchor=(0, 0),
-            html=f'<div style="font-size: 16pt; color: {color}; font-weight: bold; background-color: white; '
-                 f'padding: 5px 10px; border-radius: 8px; border: 1px solid black;">{name}</div>',
+            html=f'<div style="display: inline-block; font-size: 14pt; color: {color}; font-weight: bold; '
+                 f'background-color: white; padding: 5px 10px; border-radius: 8px; border: 1px solid black; '
+                 f'white-space: nowrap;">{name}</div>',
         )
     ).add_to(m)
+
 
 
 # 선택한 역이 있을 경우 지도에 마커 추가
