@@ -72,11 +72,11 @@ center = [selected_stations["역위도"].mean(), selected_stations["역경도"].
 m = folium.Map(location=center, zoom_start=13)
 
 # 마커 및 라벨 표시 함수
-def add_marker_with_label(lat, lon, name, color):
+def add_marker_with_label(lat, lon, name, color, icon_name):
     folium.Marker(
         location=[lat, lon],
         tooltip=name,
-        icon=folium.Icon(color=color, icon="info-sign")
+        icon=folium.Icon(color=color, icon=icon_name)
     ).add_to(m)
 
     folium.map.Marker(
@@ -88,13 +88,15 @@ def add_marker_with_label(lat, lon, name, color):
         )
     ).add_to(m)
 
-# 두 역 지도에 강조된 마커 표시
+# 두 역 지도에 강조된 마커 표시 (그래프 색상 적용)
 for _, row in selected_stations.iterrows():
     name = row["역사명"] + "역"
     lat = row["역위도"]
     lon = row["역경도"]
     color = "royalblue" if row["역사명"] == station1 else "darkorange"
-    add_marker_with_label(lat, lon, name, color)
+    icon_name = "star" if row["역사명"] == station1 else "cloud"  # 아이콘 모양 변경 가능
+
+    add_marker_with_label(lat, lon, name, color, icon_name)
 
 # 지도 출력
 st_folium(m, width=800, height=600)
