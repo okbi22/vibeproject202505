@@ -68,8 +68,8 @@ st.markdown("### 🗺️ 선택한 역의 지도 위치")
 selected_stations = station_info[station_info["역사명"].isin([station1, station2])]
 
 # 지도 초기화
-center = [37.5665, 126.9780]  # 서울 중심
-m = folium.Map(location=center, zoom_start=12)
+center = [selected_stations["역위도"].mean(), selected_stations["역경도"].mean()]
+m = folium.Map(location=center, zoom_start=13)
 
 # 마커 및 라벨 표시 함수
 def add_marker_with_label(lat, lon, name, color):
@@ -78,22 +78,23 @@ def add_marker_with_label(lat, lon, name, color):
         tooltip=name,
         icon=folium.Icon(color=color, icon="info-sign")
     ).add_to(m)
+
     folium.map.Marker(
         [lat, lon],
         icon=DivIcon(
-            icon_size=(150, 36),
+            icon_size=(200, 50),
             icon_anchor=(0, 0),
-            html=f'<div style="font-size: 12pt; color: {color}; font-weight: bold;">{name}</div>',
+            html=f'<div style="font-size: 16pt; color: {color}; font-weight: bold;">{name}</div>',
         )
     ).add_to(m)
 
-# 두 역 지도에 표시
+# 두 역 지도에 강조된 마커 표시
 for _, row in selected_stations.iterrows():
     name = row["역사명"] + "역"
     lat = row["역위도"]
     lon = row["역경도"]
-    color = "blue" if row["역사명"] == station1 else "orange"
+    color = "royalblue" if row["역사명"] == station1 else "darkorange"
     add_marker_with_label(lat, lon, name, color)
 
 # 지도 출력
-st_folium(m, width=700, height=500)
+st_folium(m, width=800, height=600)
